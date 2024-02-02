@@ -1,0 +1,53 @@
+stackName: "eks-sd"
+modelBucketArn: 'arn:aws:s3:::825202810339-ue1-ml-models'
+modelsRuntime:
+- name: "sdruntime"
+  namespace: "sdruntime"
+  type: "SDWebUI"
+  chartRepository: "825202810339.dkr.ecr.us-east-1.amazonaws.com/eks-sd/charts"
+  chartVersion: "0.1.1" # Version of Helm chart.
+  modelFilename: "v1-5-pruned-emaonly.safetensors"
+  extraValues:
+    karpenter:
+      provisioner:
+        instanceType:
+        - "g4dn.xlarge"
+        - "g4dn.2xlarge"
+        capacityType:
+          onDemand: true
+          spot: true
+    sdWebuiInferenceApi:
+      inferenceApi:
+        image:
+          repository: 825202810339.dkr.ecr.us-east-1.amazonaws.com/eks-sd/inference-api # Image Repository of stable diffusion runtime.
+          tag: latest
+      queueAgent:
+        image:
+          repository: 825202810339.dkr.ecr.us-east-1.amazonaws.com/eks-sd/queue-agent # Image Repository of queue agent.
+          tag: latest
+      persistence:
+        enabled: true
+        existingClaim: "efs-model-storage-pvc"
+      scaling:
+        queueLength: 20 # Target value for queue length. One new instance will be launched when queue launch reaches the value.
+        minReplicaCount: 0 # Minimum number of replicas of SD Runtime.
+        maxReplicaCount: 5 # Maxinum number of replicas of SD Runtime.
+        cooldownPeriod: 300 # The period (in seconds) to wait after the last message before scaling down.
+dynamicModelRuntime:
+  enabled: false
+  namespace: "default"
+  extraValues:
+    karpenter:
+      provisioner:
+        instanceType:
+        - "g4dn.xlarge"
+        - "g4dn.2xlarge"
+        capacityType:
+          onDemand: true
+          spot: true
+    sdWebuiInferenceApi:
+      scaling:
+        queueLength: 20 # Target value for queue length. One new instance will be launched when queue launch reaches the value.
+        minReplicaCount: 0 # Minimum number of replicas of SD Runtime.
+        maxReplicaCount: 5 # Maxinum number of replicas of SD Runtime.
+        cooldownPeriod: 300 # The period (in seconds) to wait after the last message before scaling down.

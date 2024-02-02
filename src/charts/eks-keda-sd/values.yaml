@@ -1,0 +1,90 @@
+global:
+  awsRegion: us-west-2
+  stackName: ""
+
+karpenter:
+  provisioner:
+    labels: {}
+    capacityType:
+      onDemand: true
+      spot: true
+    instanceType:
+    - "g5.xlarge"
+    - "g5.2xlarge"
+    extraRequirements: []
+    extraTaints: []
+    resourceLimits:
+      nvidia.com/gpu: 100
+    consolidation: true
+  nodeTemplate:
+    securityGroupSelector: {}
+    subnetSelector: {}
+    tags: {}
+    amiFamily: Bottlerocket
+    osVolume:
+      volumeSize: 10Gi
+      volumeType: gp3
+      deleteOnTermination: true
+      iops: 3000
+      throughput: 125
+    dataVolume:
+      volumeSize: 80Gi
+      volumeType: gp3
+      deleteOnTermination: true
+      iops: 4000
+      throughput: 1000
+    userData: ""
+sdWebuiInferenceApi:
+  labels: {}
+  annotations: {}
+  serviceAccountName: sd-webui-sa
+  replicas: 1
+  scaling:
+    enabled: true
+    queueLength: 10
+    cooldownPeriod: 60
+    maxReplicaCount: 20
+    minReplicaCount: 0
+    pollingInterval: 1
+    scaleOnInFlight: false
+    extraHPAConfig: {}
+  inferenceApi:
+    image:
+      repository: sdoneks/inference-api
+      tag: latest
+    modelFilename: v1-5-pruned-emaonly.safetensors
+    modelMountPath: /tmp/models
+    extraEnv: {}
+    imagePullPolicy: IfNotPresent
+    resources:
+      limits:
+        nvidia.com/gpu: "1"
+      requests:
+        nvidia.com/gpu: "1"
+        cpu: 3
+        memory: 8Gi
+  queueAgent:
+    image:
+      repository: sdoneks/queue-agent
+      tag: latest
+    extraEnv: {}
+    dynamicModel: false
+    imagePullPolicy: IfNotPresent
+    s3Bucket: ""
+    snsTopicArn: ""
+    sqsQueueUrl: ""
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    XRay:
+      enabled: true
+  persistence:
+    enabled: true
+    existingClaim: ""
+    labels: {}
+    annotations: {}
+    storageClass: efs-model-storage-sc
+    size: 2Ti
+    accessModes:
+    - ReadWriteMany
