@@ -1,11 +1,11 @@
-stackName: "eks-sd"
+stackName: "eksSd2"
 modelBucketArn: 'arn:aws:s3:::825202810339-ue1-ml-models'
 modelsRuntime:
 - name: "sdruntime"
   namespace: "sdruntime"
   type: "SDWebUI"
-  chartRepository: "825202810339.dkr.ecr.us-east-1.amazonaws.com/eks-sd/charts"
-  chartVersion: "0.1.1" # Version of Helm chart.
+  chartRepository: "oci://825202810339.dkr.ecr.us-east-1.amazonaws.com/eks-sd/charts/eks-keda-sd"
+  chartVersion: "0.1.0" # Version of Helm chart.
   modelFilename: "v1-5-pruned-emaonly.safetensors"
   extraValues:
     karpenter:
@@ -27,7 +27,7 @@ modelsRuntime:
           tag: latest
       persistence:
         enabled: true
-        existingClaim: "efs-model-storage-pvc"
+        # existingClaim: "efs-model-storage-pvc"
       scaling:
         queueLength: 20 # Target value for queue length. One new instance will be launched when queue launch reaches the value.
         minReplicaCount: 0 # Minimum number of replicas of SD Runtime.
@@ -35,7 +35,7 @@ modelsRuntime:
         cooldownPeriod: 300 # The period (in seconds) to wait after the last message before scaling down.
 dynamicModelRuntime:
   enabled: false
-  namespace: "default"
+  namespace: "dynamic"
   extraValues:
     karpenter:
       provisioner:
