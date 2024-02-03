@@ -129,11 +129,11 @@ export default class DataPlaneStack {
     }
 
     const addOns: Array<blueprints.ClusterAddOn> = [
-      // new blueprints.addons.VpcCniAddOn(),
-      // new blueprints.addons.CoreDnsAddOn(),
-      // new blueprints.addons.KubeProxyAddOn(),
-      // new blueprints.addons.AwsLoadBalancerControllerAddOn(),
-      // new blueprints.addons.EbsCsiDriverAddOn(),
+      new blueprints.addons.VpcCniAddOn(),
+      new blueprints.addons.CoreDnsAddOn(),
+      new blueprints.addons.KubeProxyAddOn(),
+      new blueprints.addons.AwsLoadBalancerControllerAddOn(),
+      new blueprints.addons.EbsCsiDriverAddOn(),
       new blueprints.addons.EfsCsiDriverAddOn(),
       new blueprints.addons.KarpenterAddOn({ interruptionHandling: true }),
       new blueprints.addons.KedaAddOn(kedaParams),
@@ -142,7 +142,7 @@ export default class DataPlaneStack {
       // new nvidiaDevicePluginAddon({}), // Bottlerocket pre-baked https://aws.amazon.com/blogs/containers/bottlerocket-support-for-nvidia-gpus/
       new SharedComponentAddOn(SharedComponentAddOnParams),
       // new EbsThroughputTunerAddOn(EbsThroughputModifyAddOnParams),
-      // new S3SyncEFSAddOn(s3SyncEFSAddOnParams)
+      new S3SyncEFSAddOn(s3SyncEFSAddOnParams)
     ];
 
 let models: string[] = [];
