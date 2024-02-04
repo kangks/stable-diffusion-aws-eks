@@ -33,13 +33,7 @@ def lambda_handler(event, context):
             sns_client.publish(
                 TargetArn=os.environ['SNS_TOPIC_ARN'],
                 Message=json.dumps({"default": json.dumps(payload)}),
-                MessageStructure='json',
-                MessageAttributes={
-                    'sd_model_checkpoint': {
-                        'DataType': 'String',
-                        'StringValue': sd_model_checkpoint
-                    }
-                }
+                MessageStructure='json'
             )
 
             return {

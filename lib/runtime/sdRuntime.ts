@@ -178,11 +178,20 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
 
     if (!this.options.dynamicModel) {
       this.options.inputSns!.addSubscription(new aws_sns_subscriptions.SqsSubscription(inputQueue, {
-        filterPolicy: {
-          sd_model_checkpoint:
+        filterPolicyWithMessageBody:{
+          alwayson_scripts: sns.FilterOrPolicy.policy(
+            {
+              sd_model_checkpoint: sns.FilterOrPolicy.filter(
+                sns.SubscriptionFilter.stringFilter({
+                  allowlist: [this.options.sdModelCheckpoint]
+                })
+              )    
+            }),
+          sdname: sns.FilterOrPolicy.filter(
             sns.SubscriptionFilter.stringFilter({
-              allowlist: [this.options.sdModelCheckpoint]
+              allowlist: [this.options.name!]
             })
+          )
         }
       }))
       generatedValues.sdWebuiInferenceApi.queueAgent.dynamicModel = false
