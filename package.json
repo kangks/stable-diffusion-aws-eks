@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@aws-quickstart/eks-blueprints": "^1.13.1",
+    "@kubecost/kubecost-eks-blueprints-addon": "^0.1.8",
     "@types/lodash": "^4.14.202",
     "aws-cdk-lib": "^2.115.0",
     "constructs": "^10.0.0",
