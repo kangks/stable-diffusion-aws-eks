@@ -22,7 +22,8 @@ export interface SDRuntimeAddOnProps extends blueprints.addons.HelmAddOnUserProp
   chartRepository?: string,
   chartVersion?: string,
   extraValues?: {},
-  efsFilesystem?: efs.IFileSystem
+  efsFilesystem?: efs.IFileSystem,
+  // isJob?: boolean
 }
 
 export const defaultProps: blueprints.addons.HelmAddOnProps & SDRuntimeAddOnProps = {
@@ -160,6 +161,7 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
     var generatedValues = {
       sdWebuiInferenceApi: {
         serviceAccountName: webUISA.serviceAccountName,
+        // isJob: this.options.isJob??false,
         inferenceApi: {
           modelFilename: this.options.sdModelCheckpoint
         },

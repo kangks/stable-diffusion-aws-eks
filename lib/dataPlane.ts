@@ -13,6 +13,7 @@ import nvidiaDevicePluginAddon from './addons/nvidiaDevicePlugin'
 import { S3SyncEFSAddOnProps, S3SyncEFSAddOn } from './addons/s3SyncEFS'
 import { SharedComponentAddOn, SharedComponentAddOnProps } from './addons/sharedComponent';
 import { SNSResourceProvider } from './resourceProvider/sns'
+import { KubecostAddOn, KubecostAddOnProps } from "@kubecost/kubecost-eks-blueprints-addon";
 
 export interface dataPlaneProps {
   stackName: string,
@@ -24,6 +25,7 @@ export interface dataPlaneProps {
     modelFilename: string,
     chartRepository?: string,
     chartVersion?: string,
+    // isJob?: boolean;
     extraValues?: {}
   }[];
   dynamicModelRuntime: {
@@ -57,58 +59,58 @@ export default class DataPlaneStack {
       irsaRoles: ["CloudWatchFullAccess", "AmazonSQSFullAccess"]
     };
 
-    // const CloudWatchLogsWritePolicy = new iam.PolicyStatement({
-    //   actions: [
-    //     "logs:CreateLogGroup",
-    //     "logs:CreateLogStream",
-    //     "logs:DescribeLogStreams",
-    //     "logs:PutLogEvents",
-    //     "logs:GetLogEvents"
-    //   ],
-    //   resources: ["*"],
-    // })
+    const CloudWatchLogsWritePolicy = new iam.PolicyStatement({
+      actions: [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:DescribeLogStreams",
+        "logs:PutLogEvents",
+        "logs:GetLogEvents"
+      ],
+      resources: ["*"],
+    })
 
-    // const awsForFluentBitParams: blueprints.AwsForFluentBitAddOnProps = {
-    //   iamPolicies: [CloudWatchLogsWritePolicy],
-    //   namespace: "amazon-cloudwatch",
-    //   values: {
-    //     cloudWatchLogs: {
-    //       region: cdk.Aws.REGION,
-    //     },
-    //     tolerations: [{
-    //       "key": "nvidia.com/gpu",
-    //       "operator": "Exists",
-    //       "effect": "NoSchedule"
-    //     }, {
-    //       "key": "runtime",
-    //       "operator": "Exists",
-    //       "effect": "NoSchedule"
-    //     }]
-    //   },
-    //   createNamespace: true
-    // }
+    const awsForFluentBitParams: blueprints.AwsForFluentBitAddOnProps = {
+      iamPolicies: [CloudWatchLogsWritePolicy],
+      namespace: "amazon-cloudwatch",
+      values: {
+        cloudWatchLogs: {
+          region: cdk.Aws.REGION,
+        },
+        tolerations: [{
+          "key": "nvidia.com/gpu",
+          "operator": "Exists",
+          "effect": "NoSchedule"
+        }, {
+          "key": "runtime",
+          "operator": "Exists",
+          "effect": "NoSchedule"
+        }]
+      },
+      createNamespace: true
+    }
 
-    // const containerInsightsParams: blueprints.ContainerInsightAddonProps = {
-    //   values: {
-    //     adotCollector: {
-    //       daemonSet: {
-    //         tolerations: [{
-    //           "key": "nvidia.com/gpu",
-    //           "operator": "Exists",
-    //           "effect": "NoSchedule"
-    //         }, {
-    //           "key": "runtime",
-    //           "operator": "Exists",
-    //           "effect": "NoSchedule"
-    //         }],
-    //         cwreceivers: {
-    //           preferFullPodName: "true",
-    //           addFullPodNameMetricLabel: "true"
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+    const containerInsightsParams: blueprints.ContainerInsightAddonProps = {
+      values: {
+        adotCollector: {
+          daemonSet: {
+            tolerations: [{
+              "key": "nvidia.com/gpu",
+              "operator": "Exists",
+              "effect": "NoSchedule"
+            }, {
+              "key": "runtime",
+              "operator": "Exists",
+              "effect": "NoSchedule"
+            }],
+            cwreceivers: {
+              preferFullPodName: "true",
+              addFullPodNameMetricLabel: "true"
+            }
+          }
+        }
+      }
+    }
 
     const SharedComponentAddOnParams: SharedComponentAddOnProps = {
       modelstorageEfs: blueprints.getNamedResource("efs-model-storage"),
@@ -117,15 +119,18 @@ export default class DataPlaneStack {
       outputBucket: blueprints.getNamedResource("outputS3Bucket")
     };
 
-    // const EbsThroughputModifyAddOnParams: EbsThroughputTunerAddOnProps = {
-    //   duration: 300,
-    //   throughput: 125,
-    //   iops: 3000
-    // };
+    const EbsThroughputModifyAddOnParams: EbsThroughputTunerAddOnProps = {
+      duration: 300,
+      throughput: 125,
+      iops: 3000
+    };
 
     const s3SyncEFSAddOnParams: S3SyncEFSAddOnProps = {
       bucketArn: dataplaneProps.modelBucketArn,
       efsFilesystem: blueprints.getNamedResource("efs-model-storage") as efs.IFileSystem
+    }
+
+    const kubecostAddOnParams: KubecostAddOnProps = {      
     }
 
     const addOns: Array<blueprints.ClusterAddOn> = [
@@ -139,10 +144,10 @@ export default class DataPlaneStack {
       new blueprints.addons.KedaAddOn(kedaParams),
       // new blueprints.addons.ContainerInsightsAddOn(containerInsightsParams),
       // new blueprints.addons.AwsForFluentBitAddOn(awsForFluentBitParams),
-      // new nvidiaDevicePluginAddon({}), // Bottlerocket pre-baked https://aws.amazon.com/blogs/containers/bottlerocket-support-for-nvidia-gpus/
       new SharedComponentAddOn(SharedComponentAddOnParams),
       // new EbsThroughputTunerAddOn(EbsThroughputModifyAddOnParams),
-      new S3SyncEFSAddOn(s3SyncEFSAddOnParams)
+      new S3SyncEFSAddOn(s3SyncEFSAddOnParams),
+      new KubecostAddOn(kubecostAddOnParams)
     ];
 
 let models: string[] = [];
@@ -160,7 +165,8 @@ dataplaneProps.modelsRuntime.forEach((val, idx, array) => {
     extraValues: val.extraValues,
     targetNamespace: val.namespace,
     dynamicModel: false,
-    efsFilesystem: blueprints.getNamedResource("efs-model-storage") as efs.IFileSystem
+    efsFilesystem: blueprints.getNamedResource("efs-model-storage") as efs.IFileSystem,
+    // isJob: val.isJob??false
   };
   addOns.push(new SDRuntimeAddon(sdRuntimeParams, val.name))
   models.push(val.modelFilename)
