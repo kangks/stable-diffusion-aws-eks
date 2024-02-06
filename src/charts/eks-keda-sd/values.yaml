@@ -39,6 +39,7 @@ sdWebuiInferenceApi:
   annotations: {}
   serviceAccountName: sd-webui-sa
   replicas: 1
+  isJob: false
   scaling:
     enabled: true
     queueLength: 10
