@@ -48,6 +48,10 @@ sdWebuiInferenceApi:
     minReplicaCount: 0
     pollingInterval: 1
     scaleOnInFlight: false
+    activeDeadlineSeconds: 600
+    backoffLimit: 1
+    successfulJobsHistoryLimit: 5
+    failedJobsHistoryLimit: 5
     extraHPAConfig: {}
   inferenceApi:
     image:

@@ -1,4 +1,4 @@
-{{- if .Values.sdWebuiInferenceApi.scaling.enabled }}
+{{- if and (.Values.sdWebuiInferenceApi.scaling.enabled) (not .Values.sdWebuiInferenceApi.isJob) }}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:

@@ -1,3 +1,4 @@
+{{- if and (.Values.sdWebuiInferenceApi.scaling.enabled) (not .Values.sdWebuiInferenceApi.isJob) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -100,3 +101,4 @@ spec:
       {{- else }}
         emptyDir: {}
       {{- end }}
+{{- end }}

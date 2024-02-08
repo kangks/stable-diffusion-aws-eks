@@ -13,6 +13,8 @@ spec:
   jobTargetRef:
     parallelism: 1 
     completions: 1
+    activeDeadlineSeconds: {{ .Values.sdWebuiInferenceApi.scaling.activeDeadlineSeconds }}
+    backoffLimit: {{ .Values.sdWebuiInferenceApi.scaling.backoffLimit }}
     template:
       metadata:
         labels:
@@ -94,8 +96,9 @@ spec:
           emptyDir: {}
         {{- end }}      
   maxReplicaCount: {{ .Values.sdWebuiInferenceApi.scaling.maxReplicaCount }}
-  minReplicaCount: {{ .Values.sdWebuiInferenceApi.scaling.minReplicaCount }}
   pollingInterval: {{ .Values.sdWebuiInferenceApi.scaling.pollingInterval }}
+  successfulJobsHistoryLimit: {{ .Values.sdWebuiInferenceApi.scaling.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.sdWebuiInferenceApi.scaling.failedJobsHistoryLimit }}
   triggers:
   - authenticationRef:
       name: {{ include "sdchart.fullname" . }}-keda-trigger-auth-aws-credentials
