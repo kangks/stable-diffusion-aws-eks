@@ -33,8 +33,13 @@ spec:
           {{- if .Values.sdWebuiInferenceApi.inferenceApi.extraEnv }}
           {{- toYaml .Values.sdWebuiInferenceApi.inferenceApi.extraEnv | nindent 10 }}
           {{- end }}
+          {{- if .Values.sdWebuiInferenceApi.inferenceApi.resources }}
+          {{- toYaml .Values.sdWebuiInferenceApi.inferenceApi.resources | nindent 10 }}
+          {{- else }}
           resources:
-            {{- toYaml .Values.sdWebuiInferenceApi.inferenceApi.resources | nindent 10 }}
+            requests:
+              "nvidia.com/gpu": 1
+          {{- end }}            
           volumeMounts:
           - mountPath: {{ .Values.sdWebuiInferenceApi.inferenceApi.modelMountPath }}
             name: models
