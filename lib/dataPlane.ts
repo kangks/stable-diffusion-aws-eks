@@ -25,7 +25,7 @@ export interface dataPlaneProps {
     modelFilename: string,
     chartRepository?: string,
     chartVersion?: string,
-    // isJob?: boolean;
+    isJob?: boolean;
     extraValues?: {}
   }[];
   dynamicModelRuntime: {
@@ -143,7 +143,7 @@ export default class DataPlaneStack {
       new blueprints.addons.KarpenterAddOn({ interruptionHandling: true }),
       new blueprints.addons.KedaAddOn(kedaParams),
       // new blueprints.addons.ContainerInsightsAddOn(containerInsightsParams),
-      // new blueprints.addons.AwsForFluentBitAddOn(awsForFluentBitParams),
+      new blueprints.addons.AwsForFluentBitAddOn(awsForFluentBitParams),
       new SharedComponentAddOn(SharedComponentAddOnParams),
       // new EbsThroughputTunerAddOn(EbsThroughputModifyAddOnParams),
       new S3SyncEFSAddOn(s3SyncEFSAddOnParams),
@@ -166,7 +166,7 @@ dataplaneProps.modelsRuntime.forEach((val, idx, array) => {
     targetNamespace: val.namespace,
     dynamicModel: false,
     efsFilesystem: blueprints.getNamedResource("efs-model-storage") as efs.IFileSystem,
-    // isJob: val.isJob??false
+    isJob: val.isJob??false
   };
   addOns.push(new SDRuntimeAddon(sdRuntimeParams, val.name))
   models.push(val.modelFilename)

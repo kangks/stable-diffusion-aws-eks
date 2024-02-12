@@ -23,7 +23,7 @@ export interface SDRuntimeAddOnProps extends blueprints.addons.HelmAddOnUserProp
   chartVersion?: string,
   extraValues?: {},
   efsFilesystem?: efs.IFileSystem,
-  // isJob?: boolean
+  isJob?: boolean
 }
 
 export const defaultProps: blueprints.addons.HelmAddOnProps & SDRuntimeAddOnProps = {
@@ -161,9 +161,10 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
     var generatedValues = {
       sdWebuiInferenceApi: {
         serviceAccountName: webUISA.serviceAccountName,
-        // isJob: this.options.isJob??false,
+        isJob: this.options.isJob??false,
         inferenceApi: {
-          modelFilename: this.options.sdModelCheckpoint
+          modelFilename: this.options.sdModelCheckpoint,
+          resources: {}
         },
         queueAgent: {
           s3Bucket: this.options.outputBucket!.bucketName,
@@ -177,6 +178,19 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
         }
       }
     }
+
+    // if(this.options.isJob){
+    //   generatedValues.sdWebuiInferenceApi.inferenceApi["resources"] = {
+    //     limits: {
+    //       "nvidia.com/gpu": 1
+    //     },          
+    //     requests: {
+    //       "nvidia.com/gpu": 1,
+    //       "cpu": 3,
+    //       "memory": "8Gi"
+    //     }
+    //   }
+    // }
 
     if (!this.options.dynamicModel) {
       this.options.inputSns!.addSubscription(new aws_sns_subscriptions.SqsSubscription(inputQueue, {
@@ -210,6 +224,8 @@ export default class SDRuntimeAddon extends blueprints.addons.HelmAddOn {
     }
 
     const values = lodash.merge(this.props.values, this.options.extraValues, generatedValues)
+
+    console.log(">> values [", this.id, "]: ", JSON.stringify(values,null,2));
 
     const chart = this.addHelmChart(clusterInfo, values, true);
 

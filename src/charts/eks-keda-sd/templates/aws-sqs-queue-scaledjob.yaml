@@ -108,5 +108,6 @@ spec:
       identityOwner: operator
       queueLength: {{ quote .Values.sdWebuiInferenceApi.scaling.queueLength }}
       queueURL: {{ .Values.sdWebuiInferenceApi.queueAgent.sqsQueueUrl }}
+      scaleOnInFlight: "{{ .Values.sdWebuiInferenceApi.scaling.scaleOnInFlight }}"
     type: aws-sqs-queue
 {{- end }}
