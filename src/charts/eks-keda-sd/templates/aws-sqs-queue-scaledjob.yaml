@@ -24,6 +24,15 @@ spec:
         containers:
         - name: sd-webui-inference-api
           image: {{ .Values.sdWebuiInferenceApi.inferenceApi.image.repository }}:{{  .Values.sdWebuiInferenceApi.inferenceApi.image.tag }}
+          resources:
+            requests:
+              "nvidia.com/gpu": 1
+            limits:
+              "nvidia.com/gpu": 1
+          volumeMounts:
+          - mountPath: {{ .Values.sdWebuiInferenceApi.inferenceApi.modelMountPath }}
+            name: models
+          imagePullPolicy: {{ .Values.sdWebuiInferenceApi.inferenceApi.imagePullPolicy }}
           env:
           - name: SD_MODEL_CHECKPOINT
             valueFrom:
@@ -33,23 +42,6 @@ spec:
           {{- if .Values.sdWebuiInferenceApi.inferenceApi.extraEnv }}
           {{- toYaml .Values.sdWebuiInferenceApi.inferenceApi.extraEnv | nindent 10 }}
           {{- end }}
-          {{- if .Values.sdWebuiInferenceApi.inferenceApi.resources }}
-          {{- toYaml .Values.sdWebuiInferenceApi.inferenceApi.resources | nindent 10 }}
-          {{- else }}
-          resources:
-            requests:
-              "nvidia.com/gpu": 1
-          {{- end }}            
-          volumeMounts:
-          - mountPath: {{ .Values.sdWebuiInferenceApi.inferenceApi.modelMountPath }}
-            name: models
-          imagePullPolicy: {{ .Values.sdWebuiInferenceApi.inferenceApi.imagePullPolicy }}
-          startupProbe:
-            httpGet:
-              path: /sdapi/v1/memory
-              port: 8080
-            failureThreshold: 120
-            periodSeconds: 1
         - name: sd-webui-queue-agent
           envFrom:
           - configMapRef:
@@ -80,6 +72,8 @@ spec:
             protocol: UDP
         {{- end }}
         serviceAccountName: {{ .Values.sdWebuiInferenceApi.serviceAccountName }}
+        scalingStrategy: 
+          strategy: accurate
         terminationGracePeriodSeconds: 60
         tolerations:
         - effect: NoSchedule
@@ -99,7 +93,9 @@ spec:
             {{- end }}
         {{- else }}
           emptyDir: {}
-        {{- end }}      
+        {{- end }}    
+        - name: shared-data
+          emptyDir: {}
   maxReplicaCount: {{ .Values.sdWebuiInferenceApi.scaling.maxReplicaCount }}
   pollingInterval: {{ .Values.sdWebuiInferenceApi.scaling.pollingInterval }}
   successfulJobsHistoryLimit: {{ .Values.sdWebuiInferenceApi.scaling.successfulJobsHistoryLimit }}
