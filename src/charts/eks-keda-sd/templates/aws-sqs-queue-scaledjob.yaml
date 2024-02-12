@@ -21,6 +21,7 @@ spec:
           app: sd-webui-inference-api
         {{- include "sdchart.selectorLabels" . | nindent 8 }}
       spec:
+        shareProcessNamespace: true
         containers:
         - name: sd-webui-inference-api
           image: {{ .Values.sdWebuiInferenceApi.inferenceApi.image.repository }}:{{  .Values.sdWebuiInferenceApi.inferenceApi.image.tag }}
