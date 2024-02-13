@@ -1,0 +1,3 @@
+[submodule "scripts/bottlerocket-images-cache"]
+	path = scripts/bottlerocket-images-cache
+	url = https://github.com/aws-samples/bottlerocket-images-cache.git
