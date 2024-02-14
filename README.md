@@ -53,13 +53,25 @@ The infrastructure follows an event-driven architecture, where user-submitted st
 |           └── app.py
 └── ...
 ```
+
 ## How to Use
 
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/your-username/your-repo.git
+git clone --recurse-submodules https://github.com/your-username/your-repo.git
 ```
+### Build the images
+
+Build the 3 container images in the `src/backend` folder and push to ECR.
+
+### Build the snapsho
+
+In the `scripts/bottlrocket-images-cache` folder, runs the `snapshot.sh` with the 3 images as the runtime parameers separated by commas.
+
+Copy the `snapshotId` and update the `config.js`
+
+### CDK deploy
 
 2. Configure `config.js` according to your environment and run `cdk deploy` from the root folder.
 
