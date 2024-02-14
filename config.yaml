@@ -15,7 +15,7 @@ modelsRuntime:
         - "g4dn.2xlarge"
         capacityType:
           onDemand: true
-          spot: true
+          spot: false
     sdWebuiInferenceApi:
       inferenceApi:
         image:
@@ -46,7 +46,7 @@ modelsRuntime:
         - "g4dn.2xlarge"
         capacityType:
           onDemand: true
-          spot: true
+          spot: false
       nodeTemplate:
         amiFamily: Bottlerocket
         dataVolume:
@@ -92,7 +92,7 @@ modelsRuntime:
         - "g4dn.2xlarge"
         capacityType:
           onDemand: true
-          spot: true
+          spot: false
       nodeTemplate:
         amiFamily: Bottlerocket
         dataVolume:
