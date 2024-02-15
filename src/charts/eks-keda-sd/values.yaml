@@ -22,7 +22,7 @@ karpenter:
     tags: {}
     amiFamily: Bottlerocket
     osVolume:
-      volumeSize: 10Gi
+      volumeSize: 40Gi
       volumeType: gp3
       deleteOnTermination: true
       iops: 3000
