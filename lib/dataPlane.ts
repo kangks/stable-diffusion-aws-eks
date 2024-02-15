@@ -145,6 +145,7 @@ export default class DataPlaneStack {
       // new blueprints.addons.ContainerInsightsAddOn(containerInsightsParams),
       new blueprints.addons.AwsForFluentBitAddOn(awsForFluentBitParams),
       new SharedComponentAddOn(SharedComponentAddOnParams),
+      new nvidiaDevicePluginAddon({}),
       // new EbsThroughputTunerAddOn(EbsThroughputModifyAddOnParams),
       new S3SyncEFSAddOn(s3SyncEFSAddOnParams),
       new KubecostAddOn(kubecostAddOnParams)
@@ -198,8 +199,8 @@ const MngProps: blueprints.MngClusterProviderProps = {
   maxSize: 2,
   desiredSize: 2,
   version: eks.KubernetesVersion.V1_27,
-  instanceTypes: [new ec2.InstanceType('t3.large')],
-  amiType: eks.NodegroupAmiType.AL2_X86_64,
+  instanceTypes: [new ec2.InstanceType('t4g.large')],
+  amiType: eks.NodegroupAmiType.AL2_ARM_64,
   enableSsmPermissions: true,
   nodeGroupTags: {
     "Name": cdk.Aws.STACK_NAME + "-ClusterComponents",
