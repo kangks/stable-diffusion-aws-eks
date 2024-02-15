@@ -13,7 +13,7 @@ handle_exit(){
 # root           1  0.0  0.0    972     4 ?        Ss   07:03   0:00 /pause
 
     curl -XPOST -kv "http://localhost:8080/sdapi/v1/server-stop"
-    pkill xray
+    killall xray
 }
 
 python3 -u main.py
