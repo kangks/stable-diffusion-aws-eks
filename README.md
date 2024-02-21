@@ -111,6 +111,111 @@ curl -X POST <value of <stack name>.FrontApiEndpoint> \
 
 3. The output can be found in the S3 bucket once the job completed.
 
+
+## GPU slicing
+
+The [lib/addons/nvidiaDevicePlugin.ts](lib/addons/nvidiaDevicePlugin.ts) added the capability of [time slicing](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-sharing.html). 
+
+1. Change the Deployment scale to 1 to trigger Karpenter to provision a GPU node.
+```
+% kubectl get pod -n sdruntime -o json | jq '.items[] | { nodename: .spec.nodeName, pod: .metadata.name}'
+{
+  "nodename": "ip-10-0-148-61.ec2.internal",
+  "pod": "sdruntime-snapshot-eks-keda-sd-sd-webui-inference-api-8f68pxgw2"
+}
+```
+
+2. Verify that nvidia device plugin is running on the new node
+
+```
+kubectl get pod -n nvidia-device-plugin -o json | jq '.items[] | { nodename: .spec.nodeName, pod: .metadata.name}'
+ 
+{
+  "nodename": "ip-10-0-148-61.ec2.internal",
+  "pod": "nvdp-nvidia-device-plugin-2n724"
+}
+```
+
+3. Check that GPU reported as per the `replicas` 
+
+```
+% kubectl get nodes -o json | jq -r '.items[] | select(.status.capacity."nvidia.com/gpu" != null) | {name: .metadata.name, capacity: .status.capacity}'
+
+{
+  "name": "ip-10-0-148-61.ec2.internal",
+  "capacity": {
+    "cpu": "4",
+    "ephemeral-storage": "961944884Ki",
+    "hugepages-1Gi": "0",
+    "hugepages-2Mi": "0",
+    "memory": "16049184Ki",
+    "nvidia.com/gpu": "4",
+    "pods": "29"
+  }
+}
+```
+
+4. Let's try to scale the service to 4
+
+```
+% kubectl scale -n sdruntime deployment <stack name>-sd-webui-inference-api --replicas=4                  
+deployment.apps/sdruntime-snapshot-eks-keda-sd-sd-webui-inference-api scaled
+```
+
+5. Do we get to see all 4 pods running on the same node? Let's check
+
+```
+% kubectl get pod -n sdruntime -o json | jq '.items[] | { nodename: .spec.nodeName, pod: .metadata.name}'            
+{
+  "nodename": "ip-10-0-147-33.ec2.internal",
+  "pod": "sdruntime-snapshot-eks-keda-sd-sd-webui-inference-api-8f682cpmc"
+}
+{
+  "nodename": "ip-10-0-148-61.ec2.internal",
+  "pod": "sdruntime-snapshot-eks-keda-sd-sd-webui-inference-api-8f682d9c6"
+}
+{
+  "nodename": "ip-10-0-148-61.ec2.internal",
+  "pod": "sdruntime-snapshot-eks-keda-sd-sd-webui-inference-api-8f685fgr4"
+}
+{
+  "nodename": "ip-10-0-148-61.ec2.internal",
+  "pod": "sdruntime-snapshot-eks-keda-sd-sd-webui-inference-api-8f68pxgw2"
+}
+```
+
+6. Two Karpenter machines created
+
+```
+% kubectl get machines
+NAME            TYPE          ZONE         NODE                           READY   AGE
+default-7ztsq   g4dn.xlarge   us-east-1b   ip-10-0-148-61.ec2.internal    True    49m
+default-j2qh2   g4dn.xlarge   us-east-1b   ip-10-0-138-235.ec2.internal   True    3m37s
+```
+
+7. Apparently a new node created to run the 4th pod, reason being, each pod requires 1 CPU and given that the node has only 4 CPUs, therefore the 4th runtime needs a new node.
+
+8. Let's terminate one of the sdruntime and we should expect that the node with only 1 runtime pod to be terminated
+
+```
+% kubectl get pod -n sdruntime -o json | jq '.items[] | { nodename: .spec.nodeName, pod: .metadata.name}'
+{
+  "nodename": "ip-10-0-148-61.ec2.internal",
+  "pod": "sdruntime-snapshot-eks-keda-sd-sd-webui-inference-api-8f682cvf9"
+}
+{
+  "nodename": "ip-10-0-148-61.ec2.internal",
+  "pod": "sdruntime-snapshot-eks-keda-sd-sd-webui-inference-api-8f685fgr4"
+}
+{
+  "nodename": "ip-10-0-148-61.ec2.internal",
+  "pod": "sdruntime-snapshot-eks-keda-sd-sd-webui-inference-api-8f68pxgw2"
+}
+% kubectl get machines
+NAME            TYPE          ZONE         NODE                          READY   AGE
+default-7ztsq   g4dn.xlarge   us-east-1b   ip-10-0-148-61.ec2.internal   True    53m
+```
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
