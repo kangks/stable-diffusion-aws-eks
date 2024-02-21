@@ -1,66 +1,13 @@
 stackName: "eksSd"
-modelBucketArn: 'arn:aws:s3:::<s3 bucket>'
+modelBucketArn: 'arn:aws:s3:::<ML Model S3 Bucket>'
 modelsRuntime:
-- name: "sdruntime"
-  namespace: "sdruntime"
-  type: "SDWebUI"
-  chartRepository: "oci://<AWS Account ID>.dkr.ecr.us-east-1.amazonaws.com/eks-sd/charts/eks-keda-sd"
-  chartVersion: "0.1.26" # Version of Helm chart.
-  modelFilename: "v1-5-pruned-emaonly.safetensors"
-  extraValues:
-    karpenter:
-      provisioner:
-        instanceType:
-        - "g4dn.xlarge"
-        - "g4dn.2xlarge"
-        capacityType:
-          onDemand: true
-          spot: false
-    sdWebuiInferenceApi:
-      inferenceApi:
-        image:
-          repository: <AWS Account ID>.dkr.ecr.us-east-1.amazonaws.com/eks-sd/inference-api # Image Repository of stable diffusion runtime.
-          tag: latest
-      queueAgent:
-        image:
-          repository: <AWS Account ID>.dkr.ecr.us-east-1.amazonaws.com/eks-sd/queue-agent # Image Repository of queue agent.
-          tag: latest
-      persistence:
-        enabled: true
-      scaling:
-        queueLength: 20 
-        minReplicaCount: 0
-        maxReplicaCount: 5
-        cooldownPeriod: 300
 - name: "sdruntime-snapshot"
   namespace: "sdruntime"
   type: "SDWebUI"
-  chartRepository: "oci://<AWS Account ID.dkr.ecr.us-east-1.amazonaws.com/eks-sd/charts/eks-keda-sd"
-  chartVersion: "0.1.26"
+  chartRepository: "oci://<AWS Account ID>.dkr.ecr.us-east-1.amazonaws.com/eks-sd/charts/eks-keda-sd"
+  chartVersion: "0.1.32" # Version of Helm chart.
   modelFilename: "v1-5-pruned-emaonly.safetensors"
   extraValues:
-    karpenter:
-      provisioner:
-        instanceType:
-        - "g4dn.xlarge"
-        - "g4dn.2xlarge"
-        capacityType:
-          onDemand: true
-          spot: false
-      nodeTemplate:
-        amiFamily: Bottlerocket
-        dataVolume:
-          volumeSize: 80Gi
-          volumeType: gp3
-          deleteOnTermination: true
-          iops: 4000
-          throughput: 1000
-          snapshotID: <snapshot ID>
-      scaling:
-        queueLength: 20
-        minReplicaCount: 0
-        maxReplicaCount: 5
-        cooldownPeriod: 300
     sdWebuiInferenceApi:
       inferenceApi:
         image:
@@ -72,76 +19,11 @@ modelsRuntime:
           tag: latest
       persistence:
         enabled: true
-      scaling:
-        queueLength: 20 
-        minReplicaCount: 0
-        maxReplicaCount: 5
-        cooldownPeriod: 300
-- name: "sdruntime-job"
-  namespace: "sdruntime"
-  type: "SDWebUI"
-  chartRepository: "oci://<AWS Account ID>.dkr.ecr.us-east-1.amazonaws.com/eks-sd/charts/eks-keda-sd"
-  chartVersion: "0.1.26" # Version of Helm chart.
-  modelFilename: "v1-5-pruned-emaonly.safetensors"
-  isJob: true
-  extraValues:
-    karpenter:
-      provisioner:
-        instanceType:
-        - "g4dn.xlarge"
-        - "g4dn.2xlarge"
-        capacityType:
-          onDemand: true
-          spot: false
-      nodeTemplate:
-        amiFamily: Bottlerocket
-        dataVolume:
-          volumeSize: 80Gi
-          volumeType: gp3
-          deleteOnTermination: true
-          iops: 4000
-          throughput: 1000
-          snapshotID: <snapshot ID>
-    sdWebuiInferenceApi:
-      inferenceApi:
-        image:
-          repository: <AWS Account ID>.dkr.ecr.us-east-1.amazonaws.com/eks-sd/inference-api
-          tag: latest
-        imagePullPolicy: Always
-        resources:
-          limits:
-            nvidia.com/gpu: "1"
-          requests:
-            nvidia.com/gpu: "1"
-            cpu: 3
-            memory: 8Gi
-      queueAgent:
-        image:
-          repository: <AWS Account ID>.dkr.ecr.us-east-1.amazonaws.com/eks-sd/queue-job
-          tag: latest
-        imagePullPolicy: Always
-      scaling:
-        queueLength: 20 # Target value for queue length. One new instance will be launched when queue launch reaches the value.
-        minReplicaCount: 0 # Minimum number of replicas of SD Runtime.
-        maxReplicaCount: 1 # Maxinum number of replicas of SD Runtime.
-        cooldownPeriod: 300 # The period (in seconds) to wait after the last message before scaling down.        
-        activeDeadlineSeconds: 1200
-        scaleOnInFlight: false
-dynamicModelRuntime:
-  enabled: false
-  namespace: "dynamic"
-  extraValues:
-    karpenter:
-      provisioner:
-        instanceType:
-        - "g4dn.xlarge"
-        - "g4dn.2xlarge"
-        capacityType:
-          onDemand: true
-          spot: true
-    sdWebuiInferenceApi:
       scaling:
         queueLength: 20 # Target value for queue length. One new instance will be launched when queue launch reaches the value.
         minReplicaCount: 0 # Minimum number of replicas of SD Runtime.
         maxReplicaCount: 5 # Maxinum number of replicas of SD Runtime.
         cooldownPeriod: 300 # The period (in seconds) to wait after the last message before scaling down.
+dynamicModelRuntime:
+  enabled: false
+  namespace: "dynamic"
