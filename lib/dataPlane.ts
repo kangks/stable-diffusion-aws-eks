@@ -133,6 +133,53 @@ export default class DataPlaneStack {
     const kubecostAddOnParams: KubecostAddOnProps = {      
     }
 
+    const karpenterProps: blueprints.KarpenterAddOnProps = {
+      requirements: [
+          { key: 'karpenter.sh/capacity-type', op: 'In', vals: ['spot','on-demand']},
+          { key: 'node.kubernetes.io/instance-type', op: 'In', vals: ['g4dn.xlarge', 'g4dn.2xlarge'] },
+          { key: 'kubernetes.io/os', op: 'In', vals: ['linux']},
+          { key: 'kubernetes.io/arch', op: 'In', vals: ['amd64']},
+      ],
+      securityGroupTags: {
+        "aws:eks:cluster-name": cdk.Aws.STACK_NAME
+      },
+      subnetTags:{
+        "aws:cloudformation:stack-name": cdk.Aws.STACK_NAME,
+        "aws-cdk:subnet-type": "Private"
+      },
+      taints: [{
+        key: "nvidia.com/gpu",
+        value: "",
+        effect: "NoSchedule",
+      }],
+      amiFamily: "Bottlerocket",
+      consolidation: { enabled: true },
+      ttlSecondsUntilExpired: 2592000,
+      interruptionHandling: true,
+      labels:{
+        "managedBy": "karpenter"
+      },
+      tags: {
+        schedule: 'always-on'
+      },
+      blockDeviceMappings: [
+        {
+          deviceName: "/dev/xvda",
+          ebs: {
+            volumeType: ec2.EbsDeviceVolumeType.GP3,
+            volumeSize: 1000000000000
+          }
+        },
+        {
+          deviceName: "/dev/xvdb",
+          ebs: {
+            volumeType: ec2.EbsDeviceVolumeType.GP3,
+            volumeSize: 1000000000000
+          }
+        }
+      ]
+    };    
+
     const addOns: Array<blueprints.ClusterAddOn> = [
       new blueprints.addons.VpcCniAddOn(),
       new blueprints.addons.CoreDnsAddOn(),
@@ -140,15 +187,14 @@ export default class DataPlaneStack {
       new blueprints.addons.AwsLoadBalancerControllerAddOn(),
       new blueprints.addons.EbsCsiDriverAddOn(),
       new blueprints.addons.EfsCsiDriverAddOn(),
-      new blueprints.addons.KarpenterAddOn({ interruptionHandling: true }),
-      new blueprints.addons.KedaAddOn(kedaParams),
+      new blueprints.addons.KarpenterAddOn(karpenterProps),
       // new blueprints.addons.ContainerInsightsAddOn(containerInsightsParams),
-      new blueprints.addons.AwsForFluentBitAddOn(awsForFluentBitParams),
+      // new blueprints.addons.AwsForFluentBitAddOn(awsForFluentBitParams),
       new SharedComponentAddOn(SharedComponentAddOnParams),
       new nvidiaDevicePluginAddon({}),
       // new EbsThroughputTunerAddOn(EbsThroughputModifyAddOnParams),
       new S3SyncEFSAddOn(s3SyncEFSAddOnParams),
-      new KubecostAddOn(kubecostAddOnParams)
+      // new KubecostAddOn(kubecostAddOnParams)
     ];
 
 let models: string[] = [];
