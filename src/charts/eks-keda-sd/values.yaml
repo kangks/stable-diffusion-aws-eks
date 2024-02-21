@@ -66,8 +66,8 @@ sdWebuiInferenceApi:
         nvidia.com/gpu: "1"
       requests:
         nvidia.com/gpu: "1"
-        cpu: 3
-        memory: 8Gi
+        cpu: 500m
+        memory: 4Gi
   queueAgent:
     image:
       repository: sdoneks/queue-agent
